@@ -52,7 +52,33 @@ void power_on_alarm_init(void);
 
 u64 alarm_forward(struct alarm *alarm, ktime_t now, ktime_t interval);
 u64 alarm_forward_now(struct alarm *alarm, ktime_t interval);
-ktime_t alarm_expires_remaining(const struct alarm *alarm);
+
+/*
+ * A alarmtimer is active, when it is enqueued into timerqueue or the
+ * callback function is running.
+ */
+static inline int alarmtimer_active(const struct alarm *timer)
+{
+	return timer->state != ALARMTIMER_STATE_INACTIVE;
+}
+
+/*
+ * Helper function to check, whether the timer is on one of the queues
+ */
+static inline int alarmtimer_is_queued(struct alarm *timer)
+{
+	return timer->state & ALARMTIMER_STATE_ENQUEUED;
+}
+
+/*
+ * Helper function to check, whether the timer is running the callback
+ * function
+ */
+static inline int alarmtimer_callback_running(struct alarm *timer)
+{
+	return timer->state & ALARMTIMER_STATE_CALLBACK;
+}
+
 
 /* Provide way to access the rtc device being used by alarmtimers */
 struct rtc_device *alarmtimer_get_rtcdev(void);
