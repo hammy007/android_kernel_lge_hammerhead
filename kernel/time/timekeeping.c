@@ -1061,7 +1061,7 @@ static cycle_t logarithmic_accumulation(cycle_t offset, int shift,
 		timekeeper.xtime.tv_sec += leap;
 		timekeeper.wall_to_monotonic.tv_sec -= leap;
 		if (leap)
-			clock_was_set_delayed();
+			*clock_set = 1;
 	}
 
 	/* Accumulate raw time */
@@ -1183,7 +1183,7 @@ static void update_wall_time(void)
 		timekeeper.xtime.tv_sec += leap;
 		timekeeper.wall_to_monotonic.tv_sec -= leap;
 		if (leap)
-			clock_was_set_delayed();
+			clock_set = 1;
 	}
 
 	timekeeping_update(false);
