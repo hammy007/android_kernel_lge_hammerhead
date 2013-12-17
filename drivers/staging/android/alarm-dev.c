@@ -45,10 +45,6 @@ module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 	ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP_MASK | \
 	ANDROID_ALARM_RTC_POWEROFF_WAKEUP_MASK)
 
-/* support old usespace code */
-#define ANDROID_ALARM_SET_OLD               _IOW('a', 2, time_t) /* set alarm */
-#define ANDROID_ALARM_SET_AND_WAIT_OLD      _IOW('a', 3, time_t)
-
 static int alarm_opened;
 static DEFINE_SPINLOCK(alarm_slock);
 static struct wake_lock alarm_wake_lock;
@@ -120,7 +116,7 @@ static void alarm_clear(enum android_alarm_type alarm_type, struct timespec *ts)
 	spin_unlock_irqrestore(&alarm_slock, flags);
 
 	if (alarm_type == ANDROID_ALARM_RTC_POWEROFF_WAKEUP)
-		set_power_on_alarm(ts->tv_sec, 0);
+		set_power_on_alarm(0);
 }
 
 static void alarm_set(enum android_alarm_type alarm_type,
@@ -134,6 +130,23 @@ static void alarm_set(enum android_alarm_type alarm_type,
 			alarm_type, ts->tv_sec, ts->tv_nsec);
 	alarm_enabled |= alarm_type_mask;
 	devalarm_start(&alarms[alarm_type], timespec_to_ktime(*ts));
+	spin_unlock_irqrestore(&alarm_slock, flags);
+
+	if (alarm_type == ANDROID_ALARM_RTC_POWEROFF_WAKEUP)
+		set_power_on_alarm(ts->tv_sec);
+}
+
+static int alarm_wait(void)
+{
+	unsigned long flags;
+	int rv = 0;
+
+	spin_lock_irqsave(&alarm_slock, flags);
+	alarm_dbg(IO, "alarm wait\n");
+	if (!alarm_pending && wait_pending) {
+		__pm_relax(&alarm_wake_lock);
+		wait_pending = 0;
+	}
 	spin_unlock_irqrestore(&alarm_slock, flags);
 
 	if (alarm_type == ANDROID_ALARM_RTC_POWEROFF_WAKEUP)
