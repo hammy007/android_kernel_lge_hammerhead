@@ -561,7 +561,6 @@ static void alarm_timer_get(struct k_itimer *timr,
 		cur_setting->it_value.tv_sec = 0;
 		cur_setting->it_value.tv_nsec = 0;
 	}
-
 	cur_setting->it_interval = ktime_to_timespec(timr->it.alarm.interval);
 }
 
