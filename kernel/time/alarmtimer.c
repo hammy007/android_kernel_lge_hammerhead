@@ -26,6 +26,8 @@
 #include <linux/workqueue.h>
 #include <linux/freezer.h>
 
+#include <mach/cpuidle.h>
+
 #define ALARM_DELTA 120
 
 /**
@@ -322,7 +324,6 @@ ktime_t alarm_expires_remaining(const struct alarm *alarm)
  * will wake us from suspend.
  */
 #if defined(CONFIG_RTC_DRV_QPNP) && defined(CONFIG_MSM_PM)
-extern void lpm_suspend_wake_time(uint64_t wakeup_time);
 static int alarmtimer_suspend(struct device *dev)
 {
 	struct rtc_time tm;
@@ -439,6 +440,7 @@ static int alarmtimer_suspend(struct device *dev)
 		__pm_wakeup_event(ws, MSEC_PER_SEC);
 	return ret;
 }
+#endif
 static int alarmtimer_resume(struct device *dev)
 {
 	struct rtc_device *rtc;
