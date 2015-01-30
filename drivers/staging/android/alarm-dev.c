@@ -510,8 +510,9 @@ static int __init alarm_dev_init(void)
 			alarms[i].u.hrt.function = devalarm_hrthandler;
 	}
 
-	wake_lock_init(&alarm_wake_lock, WAKE_LOCK_SUSPEND, "alarm");
+	wakeup_source_init(&alarm_wake_lock, "alarm");
 
+	power_on_alarm_init();
 	return 0;
 }
 
