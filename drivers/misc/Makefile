@@ -76,3 +76,4 @@ obj-$(CONFIG_EARJACK_DEBUGGER) += earjack_debugger.o
 obj-$(CONFIG_FAN48632_BOOST) += fan48632_boost.o
 obj-$(CONFIG_UID_CPUTIME) += uid_cputime.o
 obj-y += sound_control.o
+obj-$(CONFIG_BLUEDROID_PM)      += bluedroid_pm.o
