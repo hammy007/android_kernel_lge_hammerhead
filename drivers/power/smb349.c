@@ -302,18 +302,10 @@ static int smb349_clear_irq(struct smb349_struct *smb349_chg)
 	u8 val[6] = {0,};
 	int ret;
 
-	switch (psp) {
-	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		val->intval = smb349_chg->chg_current_ma * 1000;
-		break;
-	case POWER_SUPPLY_PROP_ONLINE:
-		val->intval = (int)smb349_chg->present;
-		break;
-	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-		val->intval = get_prop_charge_type(smb349_chg);
-		break;
-	default:
-		return -EINVAL;
+	ret = smb349_read_reg(smb349_chg->client, IRQ_A_REG, &val[0]);
+	if (ret < 0) {
+		pr_err("failed to read IRQ_A_REG rc=%d\n", ret);
+		return ret;
 	}
 
 	ret = smb349_read_reg(smb349_chg->client, IRQ_B_REG, &val[1]);
@@ -1045,20 +1037,7 @@ static int pm_power_set_property(struct power_supply *psy,
 		smb349_chg->ac_online = val->intval;
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		if (val->intval) {
-			if (smb349_chg->chg_current_ma * 1000 != val->intval)
-				return -EINVAL;
-		}
-		break;
-	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-		if (val->intval && smb349_chg->present) {
-			if (val->intval == POWER_SUPPLY_CHARGE_TYPE_FAST)
-				return smb349_start_charging(smb349_chg);
-			if (val->intval == POWER_SUPPLY_CHARGE_TYPE_NONE)
-				return smb349_stop_charging(smb349_chg);
-		} else {
-			return -EINVAL;
-		}
+		smb349_chg->chg_current_ma = val->intval / 1000;
 		break;
 	default:
 		return -EINVAL;
